@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL3/SDL.h>
 #include <algorithm>
-#include <list>
+#include <deque>
 #include <thread>
 #include <chrono>
 #include <string>
@@ -26,9 +26,13 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 	auto renderer = SDL_CreateRenderer(window, nullptr);
 	int duration = 0;
 	int score = 0;
-	displayApple(renderer, {},1);
+	Point apple;
+	apple = displayApple(renderer, {},1);
+	std::deque<Point>snake;
+	snake.push_back({ 20,21 });
 	while (isRunning)
 	{
+		break;
 		direction.store(nextDirection.load());
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -58,13 +62,72 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 		SDL_FRect divider = { 0.0f, 50.0f,800.0f,10.0f };
 		SDL_RenderFillRect(renderer, &divider);
 
-		//apple
-		displayApple(renderer, {});
+		//snake
+		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 0);
+		switch (direction.load())
+		{
+		case Toward::up:
+			snake.push_front({ snake.front().x,snake.front().y - 1 });
+			break;
+		case Toward::down:
+			snake.push_front({ snake.front().x,snake.front().y + 1 });
+			break;
+		case Toward::left:
+			snake.push_front({ snake.front().x - 1,snake.front().y });
+			break;
+		case Toward::right:
+			snake.push_front({ snake.front().x + 1,snake.front().y });
+			break;
+		}
+		if (snake.front().x == apple.x && snake.front().y == apple.y)
+		{
+			score++;
+			apple = displayApple(renderer, snake, 1);
+		}
+		else
+		{
+			snake.pop_back();
+			displayApple(renderer, {});
+		}
+		displaySnake(renderer, snake);
+
 
 		SDL_RenderPresent(renderer);
 
 		//delay
-		std::this_thread::sleep_for(std::chrono::milliseconds(500- std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-start).count() % 500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(250- std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-start).count() % 250));
+	}
+	if (isRunning)
+	{
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+		SDL_FRect gameOverRects[] =
+		{
+			//O
+			SDL_FRect{10 * 20.0f,18 * 20.0f + numberY,20.0f,5 * 20.0f},
+			SDL_FRect{11 * 20.0f,18 * 20.0f + numberY,20.0f * 3,20.0f},
+			SDL_FRect{11 * 20.0f,22 * 20.0f + numberY,20.0f * 3,20.0f},
+			SDL_FRect{14 * 20.0f,18 * 20.0f + numberY,20.0f,20.0f * 5},
+			//V
+			SDL_FRect{16 * 20.0f,18 * 20.0f + numberY,20.0f,20.0f * 2},
+			SDL_FRect{17 * 20.0f,20 * 20.0f + numberY,20.0f,20.0f * 2},
+			SDL_FRect{18 * 20.0f,22 * 20.0f + numberY,20.0f,20.0f},
+			SDL_FRect{19 * 20.0f,20 * 20.0f + numberY,20.0f,20.0f * 2},
+			SDL_FRect{20 * 20.0f,18 * 20.0f + numberY,20.0f,20.0f * 2},
+			//E
+			SDL_FRect{22 * 20.0f,18 * 20.0f + numberY,20.0f,20.0f * 5},
+			SDL_FRect{23 * 20.0f,18 * 20.0f + numberY,20.0f * 3,20.0f},
+			SDL_FRect{23 * 20.0f,20 * 20.0f + numberY,20.0f * 3,20.0f},
+			SDL_FRect{23 * 20.0f,22 * 20.0f + numberY,20.0f * 3,20.0f},
+			//R
+			SDL_FRect{27 * 20.0f,18 * 20.0f + numberY,20.0f,20.0f*5},
+			SDL_FRect{28 * 20.0f,18 * 20.0f + numberY,20.0f*3,20.0f},
+			SDL_FRect{28 * 20.0f,20 * 20.0f + numberY,20.0f*3,20.0f},
+			SDL_FRect{30 * 20.0f,19 * 20.0f + numberY,20.0f,20.0f},
+			SDL_FRect{29 * 20.0f,21 * 20.0f + numberY,20.0f,20.0f},
+			SDL_FRect{30 * 20.0f,22 * 20.0f + numberY,20.0f,20.0f},
+		};
+		SDL_RenderFillRects(renderer, gameOverRects, 19);
+		SDL_RenderPresent(renderer);
 	}
 }
 

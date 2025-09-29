@@ -5,4 +5,5 @@
 #include "conf.h"
 
 int displayNumber(SDL_Renderer* renderer,short num,float x,float y);
-int displayApple(SDL_Renderer* renderer, std::deque<Point> snake, bool newApple = 0);
+Point displayApple(SDL_Renderer* renderer, const std::deque<Point> &snake, bool newApple = 0);
+int displaySnake(SDL_Renderer* renderer, const std::deque<Point> &snake);

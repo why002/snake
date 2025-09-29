@@ -46,7 +46,7 @@ int displayNumber(SDL_Renderer* renderer, short num, float x, float y)
 	return num;
 }
 
-int displayApple(SDL_Renderer* renderer, std::deque<Point> snake, bool newApple = 0)
+Point displayApple(SDL_Renderer* renderer, const std::deque<Point> &snake, bool newApple = 0)
 {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
@@ -54,7 +54,7 @@ int displayApple(SDL_Renderer* renderer, std::deque<Point> snake, bool newApple 
 	static std::uniform_int_distribution<> disY(0, mapY - 1);
 	static Point apple{ disX(gen),disY(gen) };
 	static SDL_Vertex vert[8];
-	const float shift1 = 5.857894376, shift2 = 14.14213562;
+	const float shift1 = 5.857894376f, shift2 = 14.14213562f;
 	const int indices[]={ 0,1,2, 0,2,3, 0,3,4, 0,4,5, 0,5,6, 0,6,7, 0,7,1 };
 	if (newApple == 1)
 	{
@@ -85,5 +85,15 @@ int displayApple(SDL_Renderer* renderer, std::deque<Point> snake, bool newApple 
 	}
 	SDL_RenderGeometry(renderer, nullptr, vert, 8, indices, 21);
 	std::cout << SDL_GetError();
+	return apple;
+}
+
+int displaySnake(SDL_Renderer* renderer, const std::deque<Point> &snake)
+{
+	for (auto& i : snake)
+	{
+		SDL_FRect rect = { i.x * 20.0f,i.y * 20.0f + numberY,20.0f,20.0f };
+		SDL_RenderFillRect(renderer, &rect);
+	}
 	return 0;
 }
