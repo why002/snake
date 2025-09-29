@@ -11,13 +11,15 @@
 #include "display.h"
 
 std::atomic<bool> isRunning = true;
-
-#ifdef _DEBUG
-void printlog(std::string msg)
+enum class Toward
 {
-	std::cout << std::format("[LOG]{}\n", msg);
-}
-#endif
+	up,
+	down,
+	right,
+	left
+};
+std::atomic<Toward> direction = Toward::up;
+std::atomic<Toward> nextDirection = Toward::up;
 
 void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_point start)
 {
@@ -26,12 +28,17 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 	int score = 0;
 	while (isRunning)
 	{
+		direction.store(nextDirection.load());
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
 		auto end = std::chrono::high_resolution_clock::now();
 		duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count()%1000;
 #ifdef _DEBUG
-		std::thread(printlog, std::format("Now:{}ms", std::chrono::duration_cast<std::chrono::microseconds>(end - start).count())).detach();
+		std::thread([&end,&start,showDirection=direction.load()]()
+			{ 
+				std::cout<<std::format("Now:{}us\n", std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+				std::cout << std::format("Direction: {}\n", showDirection == Toward::up ? "up" : showDirection == Toward::down ? "down" : showDirection == Toward::left ? "left" : "right");
+			}).detach();
 #endif
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
@@ -69,7 +76,7 @@ int main(int argc, char* argv[]) {
 	}
 	SDL_Event event;
 	auto start = std::chrono::high_resolution_clock::now();
-	std::thread (renderLoop, win,start).detach();
+	std::thread rendererThread(renderLoop, win,start);
 	while (true)
 	{
 		while (SDL_PollEvent(&event))
@@ -79,7 +86,38 @@ int main(int argc, char* argv[]) {
 				isRunning = false;
 				SDL_DestroyWindow(win);
 				SDL_Quit();
+				rendererThread.join();
 				return 0;
+			}
+			if (event.type == SDL_EVENT_KEY_DOWN)
+			{
+				switch (event.key.key)
+				{
+				case SDLK_UP:
+					if (direction != Toward::down)
+					{
+						nextDirection = Toward::up;
+					}
+					break;
+				case SDLK_DOWN:
+					if (direction != Toward::up)
+					{
+						nextDirection = Toward::down;
+					}
+					break;
+				case SDLK_RIGHT:
+					if (direction != Toward::left)
+					{
+						nextDirection = Toward::right;
+					}
+					break;
+				case SDLK_LEFT:
+					if (direction != Toward::right)
+					{
+						nextDirection = Toward::left;
+					}
+					break;
+				}
 			}
 		}
 	}
