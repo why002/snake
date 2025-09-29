@@ -84,7 +84,6 @@ Point displayApple(SDL_Renderer* renderer, const std::deque<Point> &snake, bool 
 		}
 	}
 	SDL_RenderGeometry(renderer, nullptr, vert, 8, indices, 21);
-	std::cout << SDL_GetError();
 	return apple;
 }
 

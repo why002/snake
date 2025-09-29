@@ -32,7 +32,6 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 	snake.push_back({ 20,21 });
 	while (isRunning)
 	{
-		break;
 		direction.store(nextDirection.load());
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -79,6 +78,27 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 			snake.push_front({ snake.front().x + 1,snake.front().y });
 			break;
 		}
+		if (snake.front().x<0 || snake.front().x >= mapX || snake.front().y < 0 || snake.front().y >= mapY)
+		{
+			snake.pop_front();
+			displaySnake(renderer, snake);
+			break;
+		}
+		bool breakSign = false;
+		for (auto& i : snake)
+		{
+			if (i.x == snake.front().x && i.y == snake.front().y && &i != &snake.front())
+			{
+				snake.pop_front();
+				displaySnake(renderer, snake);
+				breakSign = true;
+				break;
+			}
+		}
+		if (breakSign == true)
+		{
+			break;
+		}
 		if (snake.front().x == apple.x && snake.front().y == apple.y)
 		{
 			score++;
@@ -90,7 +110,6 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 			displayApple(renderer, {});
 		}
 		displaySnake(renderer, snake);
-
 
 		SDL_RenderPresent(renderer);
 
