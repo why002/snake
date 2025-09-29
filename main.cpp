@@ -26,13 +26,16 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 	auto renderer = SDL_CreateRenderer(window, nullptr);
 	int duration = 0;
 	int score = 0;
+	displayApple(renderer, {},1);
 	while (isRunning)
 	{
 		direction.store(nextDirection.load());
+
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
 		auto end = std::chrono::high_resolution_clock::now();
 		duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count()%1000;
+
 #ifdef _DEBUG
 		std::thread([&end,&start,showDirection=direction.load()]()
 			{ 
@@ -54,6 +57,10 @@ void renderLoop(SDL_Window* window,std::chrono::high_resolution_clock::time_poin
 		displayNumber(renderer, score%10, 770.0f, 5.0f);
 		SDL_FRect divider = { 0.0f, 50.0f,800.0f,10.0f };
 		SDL_RenderFillRect(renderer, &divider);
+
+		//apple
+		displayApple(renderer, {});
+
 		SDL_RenderPresent(renderer);
 
 		//delay
